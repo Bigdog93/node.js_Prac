@@ -5,10 +5,11 @@ var url = require('url'); // url이라는 모듈을 쓸꺼다. nodejs 꺼
 var app = http.createServer(function(request,response){
     var _url = request.url;
     var queryData = url.parse(_url, true).query;
-    var title = queryData.id;
+    var pathname = url.parse(_url, true).pathname;
     console.log(queryData);
     console.log(queryData.id);
-    if(_url == '/'){
+    // 기존에 있던 코드.. 별로래
+    /* if(_url == '/'){
       // _url = '/index.html';
       title = 'Welcome';
     }
@@ -16,36 +17,80 @@ var app = http.createServer(function(request,response){
         response.writeHead(404);
         response.end();
         return;
+    } */
+
+    console.log(url.parse(_url, true)); // protocol, auth, port 등 url의 각종 정보들이 담겨있음
+    // path : 쿼리스트링이 포함된 경로(도메인 이하 /부터)
+    // pathname : 쿼리스트링을 뺀 경로
+
+    if(pathname === '/') {
+      if(queryData.id === undefined) {
+        var title = 'Welcome';
+        var description = 'Hello, Node.js';
+        var template = `
+        <!doctype html>
+        <html>
+        <head>
+          <title>WEB1 - ${title}</title>
+          <meta charset="utf-8">
+        </head>
+        <body>
+          <h1><a href="/">WEB</a></h1>
+          <ol>
+            <li><a href="/?id=HTML">HTML</a></li>
+            <li><a href="/?id=CSS">CSS</a></li>
+            <li><a href="/?id=JavaScript">JavaScript</a></li>
+          </ol>
+          <h2>${title}</h2>
+          <p>
+            ${description}
+          </p>
+        </body>
+        </html>
+  
+        `
+        response.writeHead(200);
+        response.end(template);
+      }else {
+        fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description) {
+          var title = queryData.id;
+          var template = `
+          <!doctype html>
+          <html>
+          <head>
+            <title>WEB1 - ${title}</title>
+            <meta charset="utf-8">
+          </head>
+          <body>
+            <h1><a href="/">WEB</a></h1>
+            <ol>
+              <li><a href="/?id=HTML">HTML</a></li>
+              <li><a href="/?id=CSS">CSS</a></li>
+              <li><a href="/?id=JavaScript">JavaScript</a></li>
+            </ol>
+            <h2>${title}</h2>
+            <p>
+              ${description}
+            </p>
+          </body>
+          </html>
+    
+          `
+          response.writeHead(200);
+          response.end(template);
+          // readFile 함수 내에 위치해야 한다.
+        })
+      }
+    }else {
+      response.writeHead(404); // 말머리..? 응답 번호 기재. 404는 Not Found
+      response.end('Not Fount');
     }
-    response.writeHead(200);
-    var template = `
-    <!doctype html>
-    <html>
-    <head>
-      <title>WEB1 - ${title}</title>
-      <meta charset="utf-8">
-    </head>
-    <body>
-      <h1><a href="/">WEB</a></h1>
-      <ol>
-        <li><a href="/?id=HTML">HTML</a></li>
-        <li><a href="/?id=CSS">CSS</a></li>
-        <li><a href="/?id=JavaScript">JavaScript</a></li>
-      </ol>
-      <h2>${title}</h2>
-      <p><a href="https://www.w3.org/TR/html5/" target="_blank" title="html5 speicification">Hypertext Markup Language (HTML)</a> is the standard markup language for <strong>creating <u>web</u> pages</strong> and web applications.Web browsers receive HTML documents from a web server or from local storage and render them into multimedia web pages. HTML describes the structure of a web page semantically and originally included cues for the appearance of the document.
-      <img src="coding.jpg" width="100%">
-      </p><p style="margin-top:45px;">HTML elements are the building blocks of HTML pages. With HTML constructs, images and other objects, such as interactive forms, may be embedded into the rendered page. It provides a means to create structured documents by denoting structural semantics for text such as headings, paragraphs, lists, links, quotes and other items. HTML elements are delineated by tags, written using angle brackets.
-      </p>
-    </body>
-    </html>
-
-    `
-
+    
+    
+    
 
     /* 응답으로 보내줄 것(문자열 넣으면 그대로 페이지에 나옴..) */
     // response.end(fs.readFileSync(__dirname + url));
-    response.end(template);
      
 });
 app.listen(3000);
